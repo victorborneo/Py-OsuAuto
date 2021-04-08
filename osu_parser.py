@@ -83,7 +83,7 @@ def parse_HOs(file_, dt=False, ht=False):
     spinner_types = (8, 12, 24, 28, 40, 44, 72, 76)
 
     screen_x, screen_y = ctypes.windll.user32.GetSystemMetrics(0), ctypes.windll.user32.GetSystemMetrics(1)
-    c = (4 / 3) / (1.0 * screen_x / screen_y)
+    c = (4 / 3) / (screen_x / screen_y)
     sx = screen_x / 2 - (0.8 * screen_x * c) / 2
     sy = 0.2 * screen_y * (11 / 19)
 
