@@ -28,8 +28,8 @@ def main():
 
     print(
         "Press L to load a map \n" \
-        "Press S to start the map (TEMPORARY) " \
-        "You can press S again mid-map to stop. \n"
+        "Press P to start the map (TEMPORARY) " \
+        "You can press S mid-map to stop. \n"
         "Press D to toggle DT, H to toggle HT.\n"
     )
     while True:
@@ -50,7 +50,7 @@ def main():
 
             print("Loaded successfully")
 
-        elif keyboard.is_pressed("s") and LOADED:
+        elif keyboard.is_pressed("p") and LOADED:
             tracker = 0
             start = time.time()
 
