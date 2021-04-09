@@ -21,10 +21,19 @@ def spin(duration):
         ctypes.windll.user32.SetCursorPos(x, y)
         angle += 1
 
+def load(file_, DT, HT):
+    return (
+        osu_parser.parse_SL(file_),
+        osu_parser.parse_SM(file_),
+        osu_parser.parse_TPs(file_, DT, HT),
+        osu_parser.parse_HOs(file_, DT, HT)
+    )
+
 def main():
     tkinter.Tk().withdraw()
     DT, HT = False, False
     LOADED = False
+    f = None
 
     print(
         "Press L to load a map \n" \
@@ -42,13 +51,10 @@ def main():
                 print("Error.")
                 continue
 
-            SL = osu_parser.parse_SL(f)
-            SM = osu_parser.parse_SM(f)
-            TPs = osu_parser.parse_TPs(f, DT, HT)
-            HOs = osu_parser.parse_HOs(f, DT, HT)
-            LOADED = True
-
+            SL, SM, TPs, HOs = load(f, DT, HT)
             print("Loaded successfully")
+
+            LOADED = True
 
         elif keyboard.is_pressed("p") and LOADED:
             tracker = 0
@@ -56,10 +62,13 @@ def main():
 
             while len(HOs) > tracker and not keyboard.is_pressed("s"):
                 if (time.time() - start) * 1000 >= HOs[tracker].offset - HOs[0].offset:
-                    if HOs[tracker].obj == 3:
-                        spin(HOs[tracker].end_offset - HOs[tracker].offset)
-                    else:
+                    if HOs[tracker].obj == 1:
                         ctypes.windll.user32.SetCursorPos(HOs[tracker].x, HOs[tracker].y)
+                    elif HOs[tracker].obj == 2:
+                        ctypes.windll.user32.SetCursorPos(HOs[tracker].x, HOs[tracker].y)
+                    else:
+                        spin(HOs[tracker].end_offset - HOs[tracker].offset)
+
                     tracker += 1
 
         elif keyboard.is_pressed("d") or keyboard.is_pressed("h"):
@@ -69,6 +78,10 @@ def main():
             elif keyboard.is_pressed("h"):
                 HT = not HT
                 if DT: DT = False
+
+            if f is not None:
+                SL, SM, TPs, HOs = load(f, DT, HT)
+ 
             print(f"DT: {DT}   HT: {HT}")
             time.sleep(0.1)
 
