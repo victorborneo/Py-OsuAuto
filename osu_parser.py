@@ -18,12 +18,12 @@ class Circle(HitObjects):
         super().__init__(x, y, offset, obj)
 
 class Slider(HitObjects):
-    def __init__(self, x, y, offset, obj, kind, pixel_length, repeat, points):
+    def __init__(self, x, y, offset, obj, kind, pixel_length, repeat, sections):
         super().__init__(x, y, offset, obj)
         self.kind = kind
         self.pixel_length = pixel_length
         self.repeat = repeat
-        self.points = points
+        self.sections = sections
 
 class Spinner(HitObjects):
     def __init__(self, offset, end_offset, obj):
@@ -110,15 +110,63 @@ def parse_HOs(file_, dt=False, ht=False):
             elif int(data[3]) in spinner_types:
                 HOs.append(Spinner(int(data[2]) * constant, int(data[5]) * constant, 3))
             else:
+                sections, temp = [], [(data[0], data[1])]
                 points = data[5][2:].split("|")
+                tempc = 1
 
                 for count, point in enumerate(points):
                     x, y = [int(x) for x in point.split(":")]
-                    points[count] = (x, y)
+                    x = int(sx + x * screen_x * 0.8 * c / 512)
+                    y = int(sy + y * screen_y * 0.8 / 384)
+
+                    if len(temp) > 0 and (x, y) == (temp[tempc - 1][0], temp[tempc - 1][1]):
+                        sections.append(temp)
+                        temp = [(x, y)]
+                        tempc = 1
+                    else:
+                        temp.append((x, y))
+                        tempc += 1
+
+                        if count + 1 == len(points):
+                            sections.append(temp)
 
                 HOs.append(
                     Slider(data[0], data[1], int(data[2]) * constant, 2,
-                    data[5][0], float(data[7]), int(data[6]), points)
+                    data[5][0], float(data[7]), int(data[6]), sections)
                 )
 
     return HOs
+
+def coordinantesOnBezier(pointArray, t):
+    bezierX = 0
+    bezierY = 0
+    degree = len(pointArray) - 1
+
+    if (degree == 1):
+        bezierX = (1 - t) * pointArray[0][0] + t * pointArray[1][0]
+        bezierY = (1 - t) * pointArray[0][1] + t * pointArray[1][1]
+    elif (degree == 2):
+        bezierX = pow(1 - t, 2) * pointArray[0][0] + 2 * (1 - t) * t * pointArray[1][0] + pow(t, 2) * pointArray[2][0]
+        bezierY = pow(1 - t, 2) * pointArray[0][1] + 2 * (1 - t) * t * pointArray[1][1] + pow(t, 2) * pointArray[2][1]
+    elif (degree == 3):
+        bezierX = pow(1 - t, 3) * pointArray[0][0] + 3 * pow(1 - t, 2) * t * pointArray[1][0] + 3 * (1 - t) * pow(t, 2) * pointArray[2][0] + pow(t, 3) * pointArray[3][0]
+        bezierY = pow(1 - t, 3) * pointArray[0][1] + 3 * pow(1 - t, 2) * t * pointArray[1][1] + 3 * (1 - t) * pow(t, 2) * pointArray[2][1] + pow(t, 3) * pointArray[3][1]
+    else:
+        for i in range(degree + 1): 
+            bezierX += binomialCoeficient(degree, i) * pow(1 - t, degree - i) * pow(t, i) * pointArray[i][0]
+            bezierY += binomialCoeficient(degree, i) * pow(1 - t, degree - i) * pow(t, i) * pointArray[i][1]
+    
+    return bezierX, bezierY
+
+def binomialCoeficient(n, k):
+    result = 1
+
+    if (k > n):
+        return 0
+    
+    for temporary in range(1, k + 1):
+        result *= n
+        n -= 1
+        result /= temporary
+
+    return result
