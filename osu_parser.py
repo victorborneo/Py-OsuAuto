@@ -1,9 +1,9 @@
 import ctypes
 
 class TimingPoint:
-    def __init__(self, offset, slider_multiplier, beat_duration):
+    def __init__(self, offset, slider_velocity, beat_duration):
         self.offset = offset
-        self.slider_multiplier = slider_multiplier
+        self.slider_velocity = slider_velocity
         self.beat_duration = beat_duration
 
 class HitObjects:
@@ -18,12 +18,12 @@ class Circle(HitObjects):
         super().__init__(x, y, offset, obj)
 
 class Slider(HitObjects):
-    def __init__(self, x, y, offset, obj, kind, pixel_length, repeat, sections):
+    def __init__(self, x, y, offset, obj, kind, duration, repeat, sections):
         super().__init__(x, y, offset, obj)
         self.kind = kind
-        self.pixel_length = pixel_length
+        self.duration = duration
         self.repeat = repeat
-        self.sections = sections
+        self.sections = sections # change it to store the path
 
 class Spinner(HitObjects):
     def __init__(self, offset, end_offset, obj):
@@ -66,19 +66,20 @@ def parse_TPs(file_, dt=False, ht=False):
 
             if data[1] >= 0:
                 last_positive = data[1] * constant
-                TPs.append(TimingPoint(data[0]*constant, 1, last_positive))
+                velocity = 1
             else:
-                if data[1] / -100 >= 1:
-                    beat_duration = last_positive
-                else:
-                    beat_duration = last_positive * (data[1] / -100)
-                TPs.append(TimingPoint(data[0]*constant, -100 / data[1], beat_duration))
+                velocity = -100 / data[1]
+
+            TPs.append(TimingPoint(data[0]*constant, velocity, last_positive))
 
     file_.seek(0)
     return TPs
 
 def parse_HOs(file_, dt=False, ht=False):
     HOs = []
+    TPs = parse_TPs(file_, dt, ht)
+    tps_tracker = 0
+    SM = parse_SM(file_) * 100
     reach = False
     spinner_types = (8, 12, 24, 28, 40, 44, 72, 76)
 
@@ -105,6 +106,9 @@ def parse_HOs(file_, dt=False, ht=False):
             if len(data) == 1:
                 break
 
+            while float(data[2]) * constant >= TPs[tps_tracker + 1].offset:
+                tps_tracker += 1
+
             if int(data[3]) % 2 != 0:
                 HOs.append(Circle(data[0], data[1], int(data[2]) * constant, 1))
             elif int(data[3]) in spinner_types:
@@ -130,9 +134,11 @@ def parse_HOs(file_, dt=False, ht=False):
                         if count + 1 == len(points):
                             sections.append(temp)
 
+                duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
+
                 HOs.append(
                     Slider(data[0], data[1], int(data[2]) * constant, 2,
-                    data[5][0], float(data[7]), int(data[6]), sections)
+                    data[5][0], round(duration), int(data[6]), sections)
                 )
 
     return HOs
