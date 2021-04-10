@@ -24,8 +24,6 @@ def spin(duration):
 def load(file_, DT, HT):
     return (
         osu_parser.parse_SL(file_),
-        osu_parser.parse_SM(file_),
-        osu_parser.parse_TPs(file_, DT, HT),
         osu_parser.parse_HOs(file_, DT, HT)
     )
 
@@ -48,10 +46,9 @@ def main():
             try:
                 f = open(file=beatmap, mode="r", encoding="utf8")
             except FileNotFoundError:
-                print("Error.")
                 continue
 
-            SL, SM, TPs, HOs = load(f, DT, HT)
+            SL, HOs = load(f, DT, HT)
             print("Loaded successfully")
 
             LOADED = True
@@ -80,7 +77,7 @@ def main():
                 if DT: DT = False
 
             if f is not None:
-                SL, SM, TPs, HOs = load(f, DT, HT)
+                SL, HOs = load(f, DT, HT)
  
             print(f"DT: {DT}   HT: {HT}")
             time.sleep(0.1)
