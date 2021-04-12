@@ -249,10 +249,12 @@ def coordinantesOnPerfect(pA, pB, pC):
     # Most of this function was taken from
     # https://github.com/CookieHoodie/OsuBot/blob/master/OsuBots/OsuBot.cpp
     path = []
+
     try:
         center = findCenter(pA, pB, pC)
     except ZeroDivisionError:
         return coordinantesOnBezier([[pA, pB, pC]], 0.01)
+
     direction = calcDirection(pA, pB, pC)
 
     aSq = math.pow(pB[0] - pC[0], 2) + math.pow(pB[1] - pC[1], 2)
@@ -351,7 +353,7 @@ def calcDirection(pA, pB, pC):
     else: # colinear
         return 0
 
-def approach_window(AR, min_ = 1800, mid_ = 1200, max_ = 450):
+def approach_window(AR, min_=1800, mid_=1200, max_=450):
     if AR > 5:
         return mid_ + (max_ - mid_) * (AR - 5) / 5
     if AR < 5:
@@ -369,6 +371,10 @@ def fix_stack(file_, HOs):
     stacked = 1
     for count, ho in enumerate(HOs):
         if (count + 1 == len(HOs) or HOs[count].obj == 3 or HOs[count + 1].obj == 3):
+            for stack in range(stacked - 1, 0, -1):
+                HOs[count - stack].x -= round(stack_offset * stack)
+                HOs[count - stack].y -= round(stack_offset * stack)
+            stacked = 1
             continue
         if (HOs[count].x, HOs[count].y) == (HOs[count + 1].x, HOs[count + 1].y) and \
                 HOs[count + 1].offset - HOs[count].offset <= stack_time:
