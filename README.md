@@ -7,7 +7,7 @@ __This bot only works and ALWAYS WILL only work with RELAX MOD toggled on, to di
 
 
 # What is "Osu!"? <h1>
-Better than me explaining is you checking for you eyes. See it [here](https://osu.ppy.sh/home).
+Better than me explaining is you checking it with your own eyes. See it [here](https://osu.ppy.sh/home).
 
 But if you want the quick answer:
 Osu! is a rhythm game where your objective is to click circles, sliders, and spinners to the beat of the song at the most precise timing possible.
@@ -20,11 +20,12 @@ Sliders involve some pretty complicated calculations to find their paths and dur
 # Requirements <h1>
 * Python 3
 * keyboard module
-I made it on Windows but I'm pretty sure it works on Linux tio, please let me know if you are a Linux user.
+
+I made it on Windows but I'm pretty sure it works on Linux too, please let me know about it if you are a Linux user.
 
 # Limitations <h1>
 As you can see on the "Issues" tab, this bot is not perfect.
 
-1. It is not FULLY automated. (What do you mean isn't it a BOT?!?) Yes, it'll play almost any map perfectly, but you still need to load the .osu beatmap file and start It MANUALLY, read the "How to use" section for more information.
+1. It is not FULLY automated. (What do you mean isn't it a BOT?!?) Yes, it'll play almost any map perfectly, but you still need to load the .osu file and start it MANUALLY, read the "How to use" section for more information.
 2. This bot does not do Aspire maps. Ye... Sorry about that one
-3. Too fast sliders glitch the bot. And by "Too fast" I mean REALLY DAMN FAST. Other than those It works done.
+3. Too fast sliders glitch the bot. And by "Too fast" I mean REALLY DAMN FAST. Other than those It works fine.
