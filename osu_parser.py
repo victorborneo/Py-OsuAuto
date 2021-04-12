@@ -194,7 +194,7 @@ def parse_HOs(file_, dt=False, ht=False):
                 )
 
     file_.seek(0)
-    fix_stack(file_, HOs)
+    fix_stack(file_, HOs, constant)
     recalculate_path(HOs)
 
     return HOs
@@ -358,13 +358,18 @@ def approach_window(AR, min_=1800, mid_=1200, max_=450):
         return mid_ - (mid_ - min_) * (5 - AR) / 5
     return mid_
 
-def fix_stack(file_, HOs):
+def fix_stack(file_, HOs, c):
     SL = parse_SL(file_)
     CS = parse_CS(file_)
     AR = parse_AR(file_)
 
     stack_offset = (512 / 16) * (1 - 0.7 * (CS - 5.0) / 5.0) / 10.0
     stack_time = approach_window(AR) * SL
+
+    if c == 2 / 3:
+        c = 3 / 2
+    elif c == 4 / 3:
+        c = 3 / 4
 
     stacked = 1
     for count, ho in enumerate(HOs):
@@ -375,7 +380,7 @@ def fix_stack(file_, HOs):
             stacked = 1
             continue
         if (HOs[count].x, HOs[count].y) == (HOs[count + 1].x, HOs[count + 1].y) and \
-                HOs[count + 1].offset - HOs[count].offset <= stack_time:
+                HOs[count + 1].offset * c  - HOs[count].offset * c <= stack_time:
             stacked += 1
         else:
             for stack in range(stacked - 1, 0, -1):
