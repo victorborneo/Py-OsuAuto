@@ -72,6 +72,8 @@ def main():
         "You can press S mid-map to stop. \n" \
         "Press D to toggle DT, H to toggle HT.\n" \
         "Press Q to change resolution manually.\n" \
+        "Press Pause/Break to stop the bot from taking inputs, " \
+        "Press again to bring it back to life.\n"
         f"\nDT: {DT}   HT: {HT}\n{screen_x}x{screen_y}." 
     )
 
@@ -127,6 +129,13 @@ def main():
         elif keyboard.is_pressed("q"):
             screen_x, screen_y, screen_dif = get_new_resolution()
             print(f"New resolution set to {screen_x}x{screen_y}")
+
+        elif keyboard.is_pressed("pause"):
+            time.sleep(0.15)
+
+            while not keyboard.is_pressed("pause"):
+                time.sleep(0.05)
+            time.sleep(0.1)
 
 if __name__ == "__main__":
     main()
