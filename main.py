@@ -14,7 +14,7 @@ def spin(duration):
     angle = 0
     end = time.time() + duration / 1000
 
-    while end > time.time():
+    while end > time.time() and not keyboard.is_pressed("s"):
         x = int(math.cos(angle) * (screen_x * 0.025) + (screen_x / 2))
         y = int(math.sin(angle) * (screen_x * 0.025) + (screen_y + screen_dif) / 2)
     
@@ -43,6 +43,7 @@ def main():
                 continue
 
             HOs = osu_parser.parse_HOs(f, DT, HT)
+            osu_parser.convert_coordinates(HOs)
             print("Loaded successfully")
 
             LOADED = True
@@ -56,7 +57,7 @@ def main():
                     if HOs[tracker].obj == 1:
                         ctypes.windll.user32.SetCursorPos(HOs[tracker].x, HOs[tracker].y)
                     elif HOs[tracker].obj == 2:
-                        ctypes.windll.user32.SetCursorPos(HOs[tracker].x, HOs[tracker].y)
+                        osu_parser.move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat)
                     else:
                         spin(HOs[tracker].end_offset - HOs[tracker].offset)
 
@@ -72,6 +73,7 @@ def main():
 
             if f is not None:
                 HOs = osu_parser.parse_HOs(f, DT, HT)
+                osu_parser.convert_coordinates(HOs)
  
             print(f"DT: {DT}   HT: {HT}")
             time.sleep(0.1)

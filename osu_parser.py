@@ -1,5 +1,7 @@
 import ctypes
 import math
+import time
+import keyboard
 
 class TimingPoint:
     def __init__(self, offset, slider_velocity, beat_duration):
@@ -34,7 +36,13 @@ class Spinner(HitObjects):
         self.obj = 3
 
 
-def convert_coordinates(point):
+def busy_wait(duration):
+    start = time.perf_counter()
+
+    while (time.perf_counter() < start + duration):
+        pass 
+
+def convert_coordinates(hit_objects):
     screen_x = ctypes.windll.user32.GetSystemMetrics(0)
     screen_y = ctypes.windll.user32.GetSystemMetrics(1)
 
@@ -42,10 +50,34 @@ def convert_coordinates(point):
     sx = screen_x / 2 - (0.8 * screen_x * c) / 2
     sy = 0.2 * screen_y * (11 / 19)
 
-    new_x = int(sx + point[0] * screen_x * 0.8 * c / 512)
-    new_y = int(sy + point[1] * screen_y * 0.8 / 384)
+    for obj in hit_objects:
+        if not obj.obj == 3:
+            obj.x = int(sx + int(obj.x) * screen_x * 0.8 * c / 512)
+            obj.y = int(sy + int(obj.y) * screen_y * 0.8 / 384)
 
-    return (new_x, new_y)
+        if obj.obj == 2:
+            for count, point in enumerate(obj.path):
+                x = int(sx + int(point[0]) * screen_x * 0.8 * c / 512)
+                y = int(sy + int(point[1]) * screen_y * 0.8 / 384)
+
+                obj.path[count] = (x, y)
+
+def move(path, duration, repeat):
+    skip = duration / len(path) / 1000
+    index = -1
+    direction = -1
+
+    for i in range(repeat):
+        direction *= -1
+        index += direction
+
+        for point in path:
+            ctypes.windll.user32.SetCursorPos(path[index][0], path[index][1])
+            index += direction
+            busy_wait(skip)
+
+            if keyboard.is_pressed("s"):
+                return
 
 def parse_SL(file_):
     for line in file_.readlines():
@@ -114,11 +146,14 @@ def parse_HOs(file_, dt=False, ht=False):
             if len(data) == 1:
                 break
 
-            while float(data[2]) * constant >= TPs[tps_tracker + 1].offset:
-                tps_tracker += 1
+            try:
+                while float(data[2]) * constant >= TPs[tps_tracker + 1].offset:
+                    tps_tracker += 1
+            except IndexError:
+                pass
 
             if int(data[3]) % 2 != 0:
-                HOs.append(Circle(data[0], data[1], int(data[2]) * constant))
+                HOs.append(Circle(int(data[0]), int(data[1]), int(data[2]) * constant))
             elif int(data[3]) in spinner_types:
                 HOs.append(Spinner(int(data[2]) * constant, int(data[5]) * constant))
             else:
@@ -148,10 +183,11 @@ def parse_HOs(file_, dt=False, ht=False):
                 duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
 
                 HOs.append(
-                    Slider(data[0], data[1], int(data[2]) * constant, data[5][0],
+                    Slider(int(data[0]), int(data[1]), int(data[2]) * constant, data[5][0],
                     round(duration), int(data[6]), sections, path)
                 )
 
+    file_.seek(0)
     return HOs
 
 def coordinantesOnBezier(sections, t):
@@ -201,7 +237,10 @@ def coordinantesOnPerfect(pA, pB, pC):
     # Most of this function was taken from
     # https://github.com/CookieHoodie/OsuBot/blob/master/OsuBots/OsuBot.cpp
     path = []
-    center = findCenter(pA, pB, pC)
+    try:
+        center = findCenter(pA, pB, pC)
+    except ZeroDivisionError:
+        return coordinantesOnBezier([[pA, pB, pC]], 0.01)
     direction = calcDirection(pA, pB, pC)
 
     aSq = math.pow(pB[0] - pC[0], 2) + math.pow(pB[1] - pC[1], 2)
