@@ -45,7 +45,7 @@ def move(path, duration, repeat, start, next_tracker):
             if keyboard.is_pressed("s") or (time.perf_counter() - start) * 1000 >= next_tracker:
                 return
 
-def spin(duration, screen_x, screen_y):
+def spin(duration, screen_x, screen_y, screen_dif):
     angle = 0
     end = time.perf_counter() + duration / 1000
 
