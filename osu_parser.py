@@ -195,6 +195,7 @@ def parse_HOs(file_, dt=False, ht=False):
 
     file_.seek(0)
     fix_stack(file_, HOs)
+    recalculate_path(HOs)
 
     return HOs
 
@@ -381,3 +382,16 @@ def fix_stack(file_, HOs):
                 HOs[count - stack].x -= round(stack_offset * stack)
                 HOs[count - stack].y -= round(stack_offset * stack)
             stacked = 1
+
+def recalculate_path(HOs):
+    for ho in HOs:
+        if ho.obj == 2:
+            new_path = [(int(ho.path[0][0]), int(ho.path[0][1]))]
+
+            for point in ho.path[1:]:
+                new_point = (int(point[0]), int(point[1]))
+
+                if math.sqrt(math.pow(new_point[0] - new_path[-1][0], 2) + math.pow(new_point[1] - new_path[-1][1], 2)) >= 3:
+                    new_path.append(new_point)
+
+            ho.path = new_path

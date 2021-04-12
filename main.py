@@ -105,7 +105,7 @@ def main():
                             next_tracker = math.inf
                         move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat, start, next_tracker)
                     else:
-                        spin(HOs[tracker].end_offset - HOs[tracker].offset, screen_x, screen_y)
+                        spin(HOs[tracker].end_offset - HOs[tracker].offset, screen_x, screen_y, screen_dif)
 
                     tracker += 1
 
