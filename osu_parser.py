@@ -200,6 +200,7 @@ def parse_HOs(file_, dt=False, ht=False):
     return HOs
 
 def coordinantesOnBezier(sections, t):
+    # Thanks to https://osu.ppy.sh/community/forums/topics/606522
     path = []
 
     for section in sections:
@@ -244,8 +245,7 @@ def binomialCoeficient(n, k):
     return result
 
 def coordinantesOnPerfect(pA, pB, pC):
-    # Most of this function was taken from
-    # https://github.com/CookieHoodie/OsuBot/blob/master/OsuBots/OsuBot.cpp
+    # Thanks to https://github.com/CookieHoodie/OsuBot/blob/master/OsuBots/OsuBot.cpp
     path = []
 
     try:

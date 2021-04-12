@@ -6,7 +6,7 @@ import tkinter
 from tkinter.filedialog import askopenfilename
 import osu_parser
 
-def get_new_coordinates():
+def get_new_resolution():
     while True:
         try:
             x = int(input("\nX: "))
@@ -68,11 +68,11 @@ def main():
 
     print(
         "Press L to load a map \n" \
-        "Press P to start the map (TEMPORARY) " \
+        "Press P to start the map. " \
         "You can press S mid-map to stop. \n" \
         "Press D to toggle DT, H to toggle HT.\n" \
         "Press Q to change resolution manually.\n" \
-        f"{screen_x}x{screen_y}." 
+        f"\nDT: {DT}   HT: {HT}\n{screen_x}x{screen_y}." 
     )
 
     while True:
@@ -125,7 +125,7 @@ def main():
             time.sleep(0.1)
 
         elif keyboard.is_pressed("q"):
-            screen_x, screen_y, screen_dif = get_new_coordinates()
+            screen_x, screen_y, screen_dif = get_new_resolution()
             print(f"New resolution set to {screen_x}x{screen_y}")
 
 if __name__ == "__main__":
