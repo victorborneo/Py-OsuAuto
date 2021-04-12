@@ -36,10 +36,7 @@ class Spinner(HitObjects):
         self.obj = 3
 
 
-def convert_coordinates(hit_objects):
-    screen_x = ctypes.windll.user32.GetSystemMetrics(0)
-    screen_y = ctypes.windll.user32.GetSystemMetrics(1)
-
+def convert_coordinates(hit_objects, screen_x, screen_y):
     c = (4 / 3) / (screen_x / screen_y)
     sx = screen_x / 2 - (0.8 * screen_x * c) / 2
     sy = 0.2 * screen_y * (11 / 19)

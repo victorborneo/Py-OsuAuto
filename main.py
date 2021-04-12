@@ -6,9 +6,21 @@ import tkinter
 from tkinter.filedialog import askopenfilename
 import osu_parser
 
-screen_x = ctypes.windll.user32.GetSystemMetrics(0)
-screen_y = ctypes.windll.user32.GetSystemMetrics(1)
-screen_dif = (0.6 / 19) * screen_y
+def get_new_coordinates():
+    while True:
+        try:
+            x = int(input("\nX: "))
+            y = int(input("Y: "))
+        except ValueError:
+            print("Insert an valid number.")
+            continue
+
+        if not (x >= 640 and y >= 480):
+            print("Lowest possible resolution is 640x480. Please insert a valid one.")
+            continue
+
+        dif = (0.6 / 19) * y
+        return (x, y, dif)
 
 def busy_wait(duration):
     start = time.perf_counter()
@@ -33,7 +45,7 @@ def move(path, duration, repeat, start, next_tracker):
             if keyboard.is_pressed("s") or (time.perf_counter() - start) * 1000 >= next_tracker:
                 return
 
-def spin(duration):
+def spin(duration, screen_x, screen_y):
     angle = 0
     end = time.perf_counter() + duration / 1000
 
@@ -50,12 +62,19 @@ def main():
     LOADED = False
     f = None
 
+    screen_x = ctypes.windll.user32.GetSystemMetrics(0)
+    screen_y = ctypes.windll.user32.GetSystemMetrics(1)
+    screen_dif = (0.6 / 19) * screen_y
+
     print(
         "Press L to load a map \n" \
         "Press P to start the map (TEMPORARY) " \
-        "You can press S mid-map to stop. \n"
-        "Press D to toggle DT, H to toggle HT.\n"
+        "You can press S mid-map to stop. \n" \
+        "Press D to toggle DT, H to toggle HT.\n" \
+        "Press Q to change resolution manually.\n" \
+        f"{screen_x}x{screen_y}." 
     )
+
     while True:
         if keyboard.is_pressed("l"):
             beatmap = askopenfilename(filetypes=[("Osu files", "*.osu")])
@@ -66,7 +85,7 @@ def main():
                 continue
 
             HOs = osu_parser.parse_HOs(f, DT, HT)
-            osu_parser.convert_coordinates(HOs)
+            osu_parser.convert_coordinates(HOs, screen_x, screen_y)
             print("Loaded successfully")
 
             LOADED = True
@@ -86,7 +105,7 @@ def main():
                             next_tracker = math.inf
                         move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat, start, next_tracker)
                     else:
-                        spin(HOs[tracker].end_offset - HOs[tracker].offset)
+                        spin(HOs[tracker].end_offset - HOs[tracker].offset, screen_x, screen_y)
 
                     tracker += 1
 
@@ -100,10 +119,14 @@ def main():
 
             if f is not None:
                 HOs = osu_parser.parse_HOs(f, DT, HT)
-                osu_parser.convert_coordinates(HOs)
+                osu_parser.convert_coordinates(HOs, screen_x, screen_y)
  
             print(f"DT: {DT}   HT: {HT}")
             time.sleep(0.1)
+
+        elif keyboard.is_pressed("q"):
+            screen_x, screen_y, screen_dif = get_new_coordinates()
+            print(f"New resolution set to {screen_x}x{screen_y}")
 
 if __name__ == "__main__":
     main()
