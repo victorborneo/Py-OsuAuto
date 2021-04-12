@@ -29,6 +29,7 @@ As you can see on the "Issues" tab, this bot is not perfect.
 1. It is not FULLY automated. (What do you mean?? Isn't it a BOT?!?) Yes, it'll play almost any map perfectly, but you still need to load the .osu file and start it MANUALLY, read the "How to use" section for more information.
 2. This bot does not do Aspire maps perfectly. Ye... Sorry about that one
 3. Too fast sliders glitch the bot. And by "Too fast" I mean REALLY DAMN FAST. Other than those It works fine.
+4. The bot only works if your game is on Fullscreen or Windowed fullscreen. Windowed won't work because it will calculate the coordinates wrong.
 
 # How to use <h1>
 1. Assuming you already have the requirements and the scripts on the same directory, all you need to do is run the main.py script, then:
@@ -36,3 +37,4 @@ As you can see on the "Issues" tab, this bot is not perfect.
 3. After it prompts it loaded successfully, press "P" to start the bot. Note: You need to start the bot along with the first hitObject of the map, with the best sync possible.
 4. You can press "D" or "H" at any moment to toggle DT or HT, respectively.
 5. You can press "S" while the bot is playing to force it to stop and regain the cursor control.
+6. By default, the bot calculates the coordinates of the hitObjects by using your monitor's resolution as parameter. If you happen to be playing with a different resolution than your monitor's active one, press "Q" and manually type your in-game resolution.
