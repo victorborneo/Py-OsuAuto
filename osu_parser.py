@@ -36,12 +36,6 @@ class Spinner(HitObjects):
         self.obj = 3
 
 
-def busy_wait(duration):
-    start = time.perf_counter()
-
-    while (time.perf_counter() < start + duration):
-        pass 
-
 def convert_coordinates(hit_objects):
     screen_x = ctypes.windll.user32.GetSystemMetrics(0)
     screen_y = ctypes.windll.user32.GetSystemMetrics(1)
@@ -62,23 +56,6 @@ def convert_coordinates(hit_objects):
 
                 obj.path[count] = (x, y)
 
-def move(path, duration, repeat):
-    skip = duration / len(path) / 1000
-    index = -1
-    direction = -1
-
-    for i in range(repeat):
-        direction *= -1
-        index += direction
-
-        for point in path:
-            ctypes.windll.user32.SetCursorPos(path[index][0], path[index][1])
-            index += direction
-            busy_wait(skip)
-
-            if keyboard.is_pressed("s"):
-                return
-
 def parse_SL(file_):
     for line in file_.readlines():
         if line.startswith("StackLeniency:"):
@@ -88,6 +65,30 @@ def parse_SL(file_):
 def parse_SM(file_):
     for line in file_.readlines():
         if line.startswith("SliderMultiplier:"):
+            file_.seek(0)
+            return float(line.split(":")[1])
+
+def parse_HP(file_):
+    for line in file_.readlines():
+        if line.startswith("HPDrainRate:"):
+            file_.seek(0)
+            return float(line.split(":")[1])
+
+def parse_CS(file_):
+    for line in file_.readlines():
+        if line.startswith("CircleSize:"):
+            file_.seek(0)
+            return float(line.split(":")[1])
+
+def parse_OD(file_):
+    for line in file_.readlines():
+        if line.startswith("OverallDifficulty:"):
+            file_.seek(0)
+            return float(line.split(":")[1])
+
+def parse_AR(file_):
+    for line in file_.readlines():
+        if line.startswith("ApproachRate:"):
             file_.seek(0)
             return float(line.split(":")[1])
 
@@ -124,12 +125,12 @@ def parse_TPs(file_, dt=False, ht=False):
 
 def parse_HOs(file_, dt=False, ht=False):
     HOs = []
-    TPs = parse_TPs(file_, dt, ht)
+    reach = False
     tps_tracker = 0
     SM = parse_SM(file_) * 100
-    reach = False
+    TPs = parse_TPs(file_, dt, ht)
     spinner_types = (8, 12, 24, 28, 40, 44, 72, 76)
-
+   
     constant = 1
     if dt:
         constant = 2 / 3
@@ -139,7 +140,7 @@ def parse_HOs(file_, dt=False, ht=False):
     for line in file_.readlines():
         if line.startswith("[HitObjects]"):
             reach = True
-
+            
         elif reach:
             data = line.split(",")
 
@@ -175,12 +176,20 @@ def parse_HOs(file_, dt=False, ht=False):
                         if count + 1 == len(points):
                             sections.append(temp)
 
+                duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
+                rate = float(data[7]) / duration
+
+                t = 0.01
+                if rate >= 1.5:
+                    t = round(rate / 100, 3)
+
+                    if t > 0.05:
+                        t = 0.05
+
                 if data[5][0] in ("L",  "B"):
-                    path = coordinantesOnBezier(sections, 0.01)
+                    path = coordinantesOnBezier(sections, t)
                 else:
                     path = coordinantesOnPerfect(sections[0][0], sections[0][1], sections[0][2])
-
-                duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
 
                 HOs.append(
                     Slider(int(data[0]), int(data[1]), int(data[2]) * constant, data[5][0],
@@ -188,6 +197,8 @@ def parse_HOs(file_, dt=False, ht=False):
                 )
 
     file_.seek(0)
+    fix_stack(file_, HOs)
+
     return HOs
 
 def coordinantesOnBezier(sections, t):
@@ -216,6 +227,7 @@ def coordinantesOnBezier(sections, t):
                     bezierY += binomialCoeficient(degree, i) * pow(1 - t_aux, degree - i) * pow(t_aux, i) * section[i][1]
             
             t_aux += t
+
             path.append((bezierX, bezierY))
 
     return path
@@ -283,12 +295,6 @@ def coordinantesOnPerfect(pA, pB, pC):
         y = int(center[1] + radius * math.sin(ang))
 
         path.append((x, y))
-
-        # fix overshoot
-        # distance = abs(increment * radius);
-
-        # if (distance >= pixelLength)
-        #     break;
     
     return path
 
@@ -344,3 +350,31 @@ def calcDirection(pA, pB, pC):
         return -1
     else: # colinear
         return 0
+
+def approach_window(AR, min_ = 1800, mid_ = 1200, max_ = 450):
+    if AR > 5:
+        return mid_ + (max_ - mid_) * (AR - 5) / 5
+    if AR < 5:
+        return mid_ - (mid_ - min_) * (5 - AR) / 5
+    return mid_
+
+def fix_stack(file_, HOs):
+    SL = parse_SL(file_)
+    CS = parse_CS(file_)
+    AR = parse_AR(file_)
+
+    stack_offset = (512 / 16) * (1 - 0.7 * (CS - 5.0) / 5.0) / 10.0
+    stack_time = approach_window(AR) * SL
+
+    stacked = 1
+    for count, ho in enumerate(HOs):
+        if (count + 1 == len(HOs) or HOs[count].obj == 3 or HOs[count + 1].obj == 3):
+            continue
+        if (HOs[count].x, HOs[count].y) == (HOs[count + 1].x, HOs[count + 1].y) and \
+                HOs[count + 1].offset - HOs[count].offset <= stack_time:
+            stacked += 1
+        else:
+            for stack in range(stacked - 1, 0, -1):
+                HOs[count - stack].x -= round(stack_offset * stack)
+                HOs[count - stack].y -= round(stack_offset * stack)
+            stacked = 1
