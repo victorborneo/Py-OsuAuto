@@ -176,17 +176,10 @@ def parse_HOs(file_, dt=False, ht=False):
                 duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
                 rate = float(data[7]) / duration
 
-                t = 0.01
-                if rate >= 1.5:
-                    t = round(rate / 100, 3)
-
-                    if t > 0.05:
-                        t = 0.05
-
                 if data[5][0] in ("L",  "B"):
-                    path = coordinantesOnBezier(sections, t)
+                    path = coordinantesOnBezier(sections, 0.005, float(data[7]))
                 else:
-                    path = coordinantesOnPerfect(sections[0][0], sections[0][1], sections[0][2])
+                    path = coordinantesOnPerfect(sections[0][0], sections[0][1], sections[0][2], float(data[7]))
 
                 HOs.append(
                     Slider(int(data[0]), int(data[1]), int(data[2]) * constant, data[5][0],
@@ -199,14 +192,16 @@ def parse_HOs(file_, dt=False, ht=False):
 
     return HOs
 
-def coordinantesOnBezier(sections, t):
+def coordinantesOnBezier(sections, t, length):
     # Thanks to https://osu.ppy.sh/community/forums/topics/606522
     path = []
+    total_distance = 0
+    point = sections[0][0]
 
     for section in sections:
         t_aux = 0
 
-        while t_aux <= 1:
+        while t_aux <= 1 and total_distance < length:
             bezierX = 0
             bezierY = 0
             degree = len(section) - 1
@@ -226,8 +221,9 @@ def coordinantesOnBezier(sections, t):
                     bezierY += binomialCoeficient(degree, i) * pow(1 - t_aux, degree - i) * pow(t_aux, i) * section[i][1]
             
             t_aux += t
-
-            path.append((bezierX, bezierY))
+            total_distance += math.sqrt(math.pow(bezierX - point[0], 2) + math.pow(bezierY - point[1], 2))
+            point = (bezierX, bezierY)
+            path.append(point)
 
     return path
 
@@ -244,7 +240,7 @@ def binomialCoeficient(n, k):
 
     return result
 
-def coordinantesOnPerfect(pA, pB, pC):
+def coordinantesOnPerfect(pA, pB, pC, length):
     # Thanks to https://github.com/CookieHoodie/OsuBot/blob/master/OsuBots/OsuBot.cpp
     path = []
 
@@ -295,6 +291,9 @@ def coordinantesOnPerfect(pA, pB, pC):
         y = int(center[1] + radius * math.sin(ang))
 
         path.append((x, y))
+
+        if abs(increment * radius) >= length:
+            break
     
     return path
 
