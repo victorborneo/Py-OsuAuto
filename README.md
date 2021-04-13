@@ -38,3 +38,4 @@ As you can see on the "Issues" tab, this bot is not perfect.
 4. You can press "D" or "H" at any moment to toggle DT or HT, respectively.
 5. You can press "S" while the bot is playing to force it to stop and regain the cursor control.
 6. By default, the bot calculates the coordinates of the hitObjects by using your monitor's resolution as parameter. If you happen to be playing with a different resolution than your monitor's active one, press "Q" and manually type your in-game resolution.
+7. To avoid the bot start playing when you don't want to, press the "Pause Break" key. It'll stop the bot from taking ANY prompt, until you press it again.
