@@ -35,7 +35,7 @@ As you can see on the "Issues" tab, this bot is not perfect.
 1. Assuming you already have the requirements and the scripts on the same directory, all you need to do is run the main.py script, then:
 2. Press "L" to choose a .osu file. (Navigate to your Osu! directory, then Songs folder)
 3. After it prompts it loaded successfully, press "P" to start the bot. Note: You need to start the bot along with the first hitObject of the map, with the best sync possible.
-4. You can press "D" or "H" at any moment to toggle DT or HT, respectively.
+4. You can press "D" or "H" or "R" at any moment to toggle DT or HT or HR, respectively.
 5. You can press "S" while the bot is playing to force it to stop and regain the cursor control.
 6. By default, the bot calculates the coordinates of the hitObjects by using your monitor's resolution as parameter. If you happen to be playing with a different resolution than your monitor's active one, press "Q" and manually type your in-game resolution.
 7. To avoid the bot start playing when you don't want to, press the "Pause Break" key. It'll stop the bot from taking ANY prompt, until you press it again.
