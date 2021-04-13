@@ -115,12 +115,15 @@ def parse_TPs(file_, dt=False, ht=False):
             else:
                 velocity = -100 / data[1]
 
-            TPs.append(TimingPoint(data[0]*constant, velocity, last_positive))
+            try:
+                TPs.append(TimingPoint(data[0]*constant, velocity, last_positive))
+            except UnboundLocalError:
+                pass
 
     file_.seek(0)
     return TPs
 
-def parse_HOs(file_, dt=False, ht=False):
+def parse_HOs(file_, dt=False, ht=False, hr=False):
     HOs = []
     reach = False
     tps_tracker = 0
@@ -140,6 +143,11 @@ def parse_HOs(file_, dt=False, ht=False):
             
         elif reach:
             data = line.split(",")
+            data[0] = int(data[0])
+            data[1] = int(data[1])
+
+            if hr:
+                data[1] = 384 - data[1]
 
             if len(data) == 1:
                 break
@@ -151,16 +159,19 @@ def parse_HOs(file_, dt=False, ht=False):
                 pass
 
             if int(data[3]) % 2 != 0:
-                HOs.append(Circle(int(data[0]), int(data[1]), int(data[2]) * constant))
+                HOs.append(Circle(data[0], data[1], int(data[2]) * constant))
             elif int(data[3]) in spinner_types:
                 HOs.append(Spinner(int(data[2]) * constant, int(data[5]) * constant))
             else:
-                sections, temp = [], [(int(data[0]), int(data[1]))]
+                sections, temp = [], [(data[0], data[1])]
                 points = data[5][2:].split("|")
                 tempc = 1
 
                 for count, point in enumerate(points):
                     x, y = [int(x) for x in point.split(":")]
+
+                    if hr:
+                        y = 384 - y
 
                     if len(temp) > 0 and (x, y) == (temp[tempc - 1][0], temp[tempc - 1][1]):
                         sections.append(temp)
@@ -181,7 +192,7 @@ def parse_HOs(file_, dt=False, ht=False):
                     path = coordinantesOnPerfect(sections[0][0], sections[0][1], sections[0][2], float(data[7]))
 
                 HOs.append(
-                    Slider(int(data[0]), int(data[1]), int(data[2]) * constant, data[5][0],
+                    Slider(data[0], data[1], int(data[2]) * constant, data[5][0],
                     round(duration), int(data[6]), sections, path)
                 )
 

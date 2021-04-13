@@ -58,9 +58,9 @@ def spin(duration, screen_x, screen_y, screen_dif):
 
 def main():
     tkinter.Tk().withdraw()
-    DT, HT = False, False
+    DT, HT, HR = False, False, False
     LOADED = False
-    f = None
+    HOs = None
 
     screen_x = ctypes.windll.user32.GetSystemMetrics(0)
     screen_y = ctypes.windll.user32.GetSystemMetrics(1)
@@ -72,9 +72,10 @@ def main():
         "You can press S mid-map to stop. \n" \
         "Press D to toggle DT, H to toggle HT.\n" \
         "Press Q to change resolution manually.\n" \
+        "Press R to toggle Hard Rock.\n" \
         "Press Pause/Break to stop the bot from taking inputs, " \
         "Press again to bring it back to life.\n"
-        f"\nDT: {DT}   HT: {HT}\n{screen_x}x{screen_y}." 
+        f"\nDT: {DT}   HT: {HT}   HR: {HR}\n{screen_x}x{screen_y}." 
     )
 
     while True:
@@ -86,11 +87,14 @@ def main():
             except FileNotFoundError:
                 continue
 
-            HOs = osu_parser.parse_HOs(f, DT, HT)
-            osu_parser.convert_coordinates(HOs, screen_x, screen_y)
-            print("Loaded successfully")
-
-            LOADED = True
+            try:
+                HOs = osu_parser.parse_HOs(f, DT, HT, HR)
+                osu_parser.convert_coordinates(HOs, screen_x, screen_y)
+            except Exception as e:
+                print(f"Something went wrong... error: {e}")
+            else:
+                print("Loaded successfully")
+                LOADED = True
 
         elif keyboard.is_pressed("p") and LOADED:
             tracker = 0
@@ -111,19 +115,21 @@ def main():
 
                     tracker += 1
 
-        elif keyboard.is_pressed("d") or keyboard.is_pressed("h"):
+        elif keyboard.is_pressed("d") or keyboard.is_pressed("h") or keyboard.is_pressed("r"):
             if keyboard.is_pressed("d"):
                 DT = not DT
                 if HT: HT = False
             elif keyboard.is_pressed("h"):
                 HT = not HT
                 if DT: DT = False
+            elif keyboard.is_pressed("r"):
+                HR = not HR
 
-            if f is not None:
-                HOs = osu_parser.parse_HOs(f, DT, HT)
+            if HOs is not None:
+                HOs = osu_parser.parse_HOs(f, DT, HT, HR)
                 osu_parser.convert_coordinates(HOs, screen_x, screen_y)
  
-            print(f"DT: {DT}   HT: {HT}")
+            print(f"DT: {DT}   HT: {HT}   HR: {HR}")
             time.sleep(0.1)
 
         elif keyboard.is_pressed("q"):
