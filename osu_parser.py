@@ -174,7 +174,6 @@ def parse_HOs(file_, dt=False, ht=False):
                             sections.append(temp)
 
                 duration = float(data[7]) / (SM * TPs[tps_tracker].slider_velocity) * TPs[tps_tracker].beat_duration
-                rate = float(data[7]) / duration
 
                 if data[5][0] in ("L",  "B"):
                     path = coordinantesOnBezier(sections, 0.005, float(data[7]))
@@ -247,7 +246,7 @@ def coordinantesOnPerfect(pA, pB, pC, length):
     try:
         center = findCenter(pA, pB, pC)
     except ZeroDivisionError:
-        return coordinantesOnBezier([[pA, pB, pC]], 0.01)
+        return coordinantesOnBezier([[pA, pB, pC]], 0.01, length)
 
     direction = calcDirection(pA, pB, pC)
 
@@ -259,7 +258,7 @@ def coordinantesOnPerfect(pA, pB, pC, length):
     circle_distance = math.sqrt(aSq) + math.sqrt(cSq)
 
     if abs(linear_distance - circle_distance) < 0.01:
-        return coordinantesOnBezier([[pA, pB, pC]], 0.01)
+        return coordinantesOnBezier([[pA, pB, pC]], 0.01, length)
 
     radius = math.sqrt(math.pow(center[0] - pA[0], 2) + math.pow(center[1] - pA[1], 2))
 
@@ -372,14 +371,14 @@ def fix_stack(file_, HOs, c):
 
     stacked = 1
     for count, ho in enumerate(HOs):
-        if (count + 1 == len(HOs) or HOs[count].obj == 3 or HOs[count + 1].obj == 3):
+        if (count + 1 == len(HOs) or ho.obj == 3 or HOs[count + 1].obj == 3):
             for stack in range(stacked - 1, 0, -1):
                 HOs[count - stack].x -= round(stack_offset * stack)
                 HOs[count - stack].y -= round(stack_offset * stack)
             stacked = 1
             continue
-        if (HOs[count].x, HOs[count].y) == (HOs[count + 1].x, HOs[count + 1].y) and \
-                HOs[count + 1].offset * c  - HOs[count].offset * c <= stack_time:
+        if (ho.x, ho.y) == (HOs[count + 1].x, HOs[count + 1].y) and \
+                HOs[count + 1].offset * c  - ho.offset * c <= stack_time:
             stacked += 1
         else:
             for stack in range(stacked - 1, 0, -1):
@@ -395,7 +394,7 @@ def recalculate_path(HOs):
             for point in ho.path[1:]:
                 new_point = (int(point[0]), int(point[1]))
 
-                if math.sqrt(math.pow(new_point[0] - new_path[-1][0], 2) + math.pow(new_point[1] - new_path[-1][1], 2)) >= 3:
+                if math.sqrt(math.pow(new_point[0] - new_path[-1][0], 2) + math.pow(new_point[1] - new_path[-1][1], 2)) >= 2:
                     new_path.append(new_point)
 
             ho.path = new_path
