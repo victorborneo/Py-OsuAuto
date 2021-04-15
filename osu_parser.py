@@ -30,9 +30,10 @@ class Slider(HitObjects):
         self.path = path
 
 class Spinner(HitObjects):
-    def __init__(self, offset, end_offset):
+    def __init__(self, offset, end_offset, duration):
         self.offset = offset
         self.end_offset = end_offset
+        self.duration = duration
         self.obj = 3
 
 
@@ -161,7 +162,8 @@ def parse_HOs(file_, dt=False, ht=False, hr=False):
             if int(data[3]) % 2 != 0:
                 HOs.append(Circle(data[0], data[1], int(data[2]) * constant))
             elif int(data[3]) in spinner_types:
-                HOs.append(Spinner(int(data[2]) * constant, int(data[5]) * constant))
+                duration = constant * (int(data[5]) - int(data[2]))
+                HOs.append(Spinner(int(data[2]) * constant, int(data[5]) * constant, duration))
             else:
                 sections, temp = [], [(data[0], data[1])]
                 points = data[5][2:].split("|")

@@ -20,6 +20,18 @@ def get_new_resolution():
 
             print("Lowest possible resolution is 640x480. Please insert a valid one.")
 
+def get_new_offset():
+    while True:
+        try:
+            offset = int(input("\nOffset (in ms): "))
+        except ValueError:
+            print("Insert an valid number.")
+        else:
+            if offset >= 0:
+                return offset / 1000
+
+            print("Offset must be greater than 0.")
+
 def busy_wait(duration):
     start = time.perf_counter()
 
@@ -30,7 +42,6 @@ def slider_move(path, duration, repeat, start, next_tracker):
     skip = duration / len(path) / 1000
     index = -1
     direction = -1
-    next_tracker /= 1000
 
     for i in range(repeat):
         direction *= -1
@@ -42,6 +53,7 @@ def slider_move(path, duration, repeat, start, next_tracker):
             busy_wait(skip)
 
             if keyboard.is_pressed("s") or time.perf_counter() >= start + next_tracker:
+                print(time.perf_counter(), start, next_tracker)
                 return
 
 def spin(duration, screen_x, screen_y, screen_dif):
@@ -55,8 +67,15 @@ def spin(duration, screen_x, screen_y, screen_dif):
         ctypes.windll.user32.SetCursorPos(x, y)
         angle += 1
 
+def adjust_offsets(HOs):
+    first = HOs[0].offset
+
+    for count, ho in enumerate(HOs):
+        HOs[count].offset = (HOs[count].offset - first) / 1000
+
 def main():
     tkinter.Tk().withdraw()
+    offset = 0.005
     DT, HT, HR = False, False, False
     LOADED = False
     HOs = None
@@ -70,11 +89,12 @@ def main():
         "Press P to start the map. " \
         "You can press S mid-map to stop. \n" \
         "Press D to toggle DT, H to toggle HT.\n" \
-        "Press Q to change resolution manually.\n" \
         "Press R to toggle Hard Rock.\n" \
+        "Press Q to change resolution manually.\n" \
+        "Press O to change start offset.\n"
         "Press Pause/Break to stop the bot from taking inputs, " \
         "Press again to bring it back to life.\n"
-        f"\nDT: {DT}   HT: {HT}   HR: {HR}\n{screen_x}x{screen_y}." 
+        f"\nOffset: {offset*1000} ms\nDT: {DT}   HT: {HT}   HR: {HR}\n{screen_x}x{screen_y}." 
     )
 
     while True:
@@ -89,6 +109,7 @@ def main():
             try:
                 HOs = osu_parser.parse_HOs(f, DT, HT, HR)
                 osu_parser.convert_coordinates(HOs, screen_x, screen_y)
+                adjust_offsets(HOs)
             except Exception as e:
                 print(f"Something went wrong... error: {e}")
             else:
@@ -97,20 +118,21 @@ def main():
 
         elif keyboard.is_pressed("p") and LOADED:
             tracker = 0
+            busy_wait(offset)
             start = time.perf_counter()
 
             while len(HOs) > tracker and not keyboard.is_pressed("s"):
-                if (time.perf_counter() - start) * 1000 >= HOs[tracker].offset - HOs[0].offset:
+                if time.perf_counter() >= HOs[tracker].offset + start:
                     if HOs[tracker].obj == 1:
                         ctypes.windll.user32.SetCursorPos(HOs[tracker].x, HOs[tracker].y)
                     elif HOs[tracker].obj == 2:
                         try:
-                            next_tracker = HOs[tracker + 1].offset - HOs[0].offset
+                            next_tracker = HOs[tracker + 1].offset
                         except IndexError:
                             next_tracker = math.inf
                         slider_move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat, start, next_tracker)
                     else:
-                        spin(HOs[tracker].end_offset - HOs[tracker].offset, screen_x, screen_y, screen_dif)
+                        spin(HOs[tracker].duration, screen_x, screen_y, screen_dif)
 
                     tracker += 1
 
@@ -127,13 +149,18 @@ def main():
             if HOs is not None:
                 HOs = osu_parser.parse_HOs(f, DT, HT, HR)
                 osu_parser.convert_coordinates(HOs, screen_x, screen_y)
- 
+                adjust_offsets(HOs)
+
             print(f"DT: {DT}   HT: {HT}   HR: {HR}")
             time.sleep(0.1)
 
         elif keyboard.is_pressed("q"):
             screen_x, screen_y, screen_dif = get_new_resolution()
             print(f"New resolution set to {screen_x}x{screen_y}")
+
+        elif keyboard.is_pressed("o"):
+            offset = get_new_offset()
+            print(f"New offset set to {offset*1000} ms")
 
         elif keyboard.is_pressed("pause"):
             time.sleep(0.15)
