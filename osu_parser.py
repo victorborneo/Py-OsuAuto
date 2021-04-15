@@ -42,7 +42,7 @@ def convert_coordinates(hit_objects, screen_x, screen_y):
     sy = 0.2 * screen_y * (11 / 19)
 
     for obj in hit_objects:
-        if not obj.obj == 3:
+        if obj.obj != 3:
             obj.x = int(sx + int(obj.x) * screen_x * 0.8 * c / 512)
             obj.y = int(sy + int(obj.y) * screen_y * 0.8 / 384)
 
@@ -116,7 +116,7 @@ def parse_TPs(file_, dt=False, ht=False):
                 velocity = -100 / data[1]
 
             try:
-                TPs.append(TimingPoint(data[0]*constant, velocity, last_positive))
+                TPs.append(TimingPoint(data[0] * constant, velocity, last_positive))
             except UnboundLocalError:
                 pass
 
@@ -173,7 +173,7 @@ def parse_HOs(file_, dt=False, ht=False, hr=False):
                     if hr:
                         y = 384 - y
 
-                    if len(temp) > 0 and (x, y) == (temp[tempc - 1][0], temp[tempc - 1][1]):
+                    if (x, y) == (temp[tempc - 1][0], temp[tempc - 1][1]):
                         sections.append(temp)
                         temp = [(x, y)]
                         tempc = 1
@@ -329,9 +329,7 @@ def findCenter(A, B, C):
     x21 = x2 - x1
   
     sx13 = math.pow(x1, 2) - math.pow(x3, 2); 
-  
     sy13 = math.pow(y1, 2) - math.pow(y3, 2); 
-  
     sx21 = math.pow(x2, 2) - math.pow(x1, 2); 
     sy21 = math.pow(y2, 2) - math.pow(y1, 2); 
 

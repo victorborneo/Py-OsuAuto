@@ -13,25 +13,24 @@ def get_new_resolution():
             y = int(input("Y: "))
         except ValueError:
             print("Insert an valid number.")
-            continue
+        else:
+            if x >= 640 and y >= 480:
+                dif = (0.6 / 19) * y
+                return (x, y, dif)
 
-        if not (x >= 640 and y >= 480):
             print("Lowest possible resolution is 640x480. Please insert a valid one.")
-            continue
-
-        dif = (0.6 / 19) * y
-        return (x, y, dif)
 
 def busy_wait(duration):
     start = time.perf_counter()
 
     while (time.perf_counter() < start + duration):
-        pass 
+        pass
 
-def move(path, duration, repeat, start, next_tracker):
+def slider_move(path, duration, repeat, start, next_tracker):
     skip = duration / len(path) / 1000
     index = -1
     direction = -1
+    next_tracker /= 1000
 
     for i in range(repeat):
         direction *= -1
@@ -42,7 +41,7 @@ def move(path, duration, repeat, start, next_tracker):
             index += direction
             busy_wait(skip)
 
-            if keyboard.is_pressed("s") or (time.perf_counter() - start) * 1000 >= next_tracker:
+            if keyboard.is_pressed("s") or time.perf_counter() >= start + next_tracker:
                 return
 
 def spin(duration, screen_x, screen_y, screen_dif):
@@ -109,7 +108,7 @@ def main():
                             next_tracker = HOs[tracker + 1].offset - HOs[0].offset
                         except IndexError:
                             next_tracker = math.inf
-                        move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat, start, next_tracker)
+                        slider_move(HOs[tracker].path, HOs[tracker].duration, HOs[tracker].repeat, start, next_tracker)
                     else:
                         spin(HOs[tracker].end_offset - HOs[tracker].offset, screen_x, screen_y, screen_dif)
 
@@ -141,7 +140,7 @@ def main():
 
             while not keyboard.is_pressed("pause"):
                 time.sleep(0.05)
-            time.sleep(0.1)
+            time.sleep(0.15)
 
 if __name__ == "__main__":
     main()
