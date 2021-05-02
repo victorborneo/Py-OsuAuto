@@ -53,7 +53,6 @@ def slider_move(path, duration, repeat, start, next_tracker):
             busy_wait(skip)
 
             if keyboard.is_pressed("s") or time.perf_counter() >= start + next_tracker:
-                print(time.perf_counter(), start, next_tracker)
                 return
 
 def spin(duration, screen_x, screen_y, screen_dif):
