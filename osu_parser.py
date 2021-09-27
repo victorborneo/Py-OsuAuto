@@ -400,12 +400,21 @@ def fix_stack(file_, HOs, c):
 def recalculate_path(HOs):
     for ho in HOs:
         if ho.obj == 2:
-            new_path = [(int(ho.path[0][0]), int(ho.path[0][1]))]
+            highest = 0
 
+            for count, point in enumerate(ho.path[:-1]):
+                point = (int(point[0]), int(point[1]))
+
+                dist = math.sqrt(math.pow(point[0] - ho.path[count + 1][0], 2) + math.pow(point[1] - ho.path[count + 1][1], 2))
+                if dist > highest:
+                    highest = dist
+
+            new_path = [(int(ho.path[0][0]), int(ho.path[0][1]))]
             for point in ho.path[1:]:
                 new_point = (int(point[0]), int(point[1]))
 
-                if math.sqrt(math.pow(new_point[0] - new_path[-1][0], 2) + math.pow(new_point[1] - new_path[-1][1], 2)) >= 2:
+                dist = math.sqrt(math.pow(new_point[0] - new_path[-1][0], 2) + math.pow(new_point[1] - new_path[-1][1], 2))
+                if dist > highest * 0.9:
                     new_path.append(new_point)
 
             ho.path = new_path
