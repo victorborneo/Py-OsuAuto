@@ -4,6 +4,7 @@ Py Osu!Auto
 **DISCLAIMER:** This bot is made for educational purposes only. I do not recommend using it on your account, log off before doing so.  
 
 __This bot only works and ALWAYS WILL only work with RELAX MOD toggled on, to discourage cheaters.__
+
 See the bot working [here](https://www.youtube.com/watch?v=yZ8OsLw9Gds) and [here](https://www.youtube.com/watch?v=LOEvBnLWcfc)
 
 
